@@ -1,50 +1,32 @@
+from itertools import product, permutations
 from typing import List
 
 
+
 class Solution:
-    def minimumMoves(self, grid: List[List[int]]) -> int:
+        def minimumMoves(self, grid: List[List[int]]) -> int:
 
-        ROWS, COLS = len(grid), len(grid[0])
-        res = float("+inf")
-        visited = set()
+            dist = lambda x, y: abs(x[0] - y[0]) + abs(x[1] - y[1])
+            zeros, spare = [], []
 
-        def is_grid_stable(grid):
-            return grid[0][0] == 1 and grid[0][1] == 1 and grid[0][2] == 1 and grid[1][0] == 1 and grid[1][1] == 1 and \
-                   grid[1][2] == 1 and grid[2][0] == 1 and grid[2][1] == 1 and grid[2][2] == 1
+            for i, j in product(range(3), range(3)):
+                stone = grid[i][j]
+                if stone == 0: zeros.append((i, j))
+                if stone > 1: spare.extend([(i, j)] * (stone - 1))
 
-        def get_min_moves(r, c, moves, grid):
-            if is_grid_stable():
-                return moves
-            if r < 0 or r >= ROWS or c < 0 or c >= COLS or (r, c) in visited or moves >= res:
-                return float("+inf")
-            directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+            min_distance = float('inf')
+            s = set(permutations(spare))
+            for per in s:
+                distances = []
+                for i in range(len(zeros)):
+                    distances.append(dist(zeros[i], per[i]))
+                total_distance = sum(distances)
+                if total_distance < min_distance:
+                    min_distance = total_distance
 
-            min_moves = float("+inf")
-            for dx, dy in directions:
-                tx, ty = r + dx, c + dy
-                if tx < 0 or tx >= ROWS or ty < 0 or ty >= COLS:
-                    continue
-                if grid[r][c] == 0:
-                    continue
-                # if valid then we can make a move
-                grid[r][c] -= 1
-                grid[tx][ty] += 1
-                visited.add((r, c))
-                min_moves = min(min_moves, get_min_moves(tx, ty, moves + 1))
-                visited.remove((r, c))
-                grid[r][c] += 1
-                grid[tx][ty] -= 1
-
-
-
-            return min_moves
-
-        for r in range(ROWS):
-            for c in range(COLS):
-                res = min(res, get_min_moves(r, c, 0))
-        return res
+            return min_distance
 
 
 if __name__ == '__main__':
     s = Solution()
-    print(s.minimumMoves([[1,3,0],[1,0,0],[1,0,3]]))
+    print(s.minimumMoves([[0, 4, 0], [0, 0, 0], [0, 5, 0]]))
